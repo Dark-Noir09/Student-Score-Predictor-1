@@ -6,7 +6,4 @@ joblib
 matplotlib
 seaborn
 plotly
-sqlite3
 reportlab
-bcrypt
-pillow
