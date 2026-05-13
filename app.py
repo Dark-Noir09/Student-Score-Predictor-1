@@ -53,6 +53,7 @@ if st.button("Predict Score"):
         "Parental_Education_Level": education,
         "Peer_Influence": peer,
         "Learning_Resources": resources,
+        "Tutoring_Sessions": tutoring,
         "Extracurricular_Activities": activities
     }
 
