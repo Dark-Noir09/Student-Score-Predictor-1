@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 import plotly.graph_objects as go
 import plotly.express as px
+import base64
+from io import BytesIO
 
 # Import custom modules
 from database import init_database, save_prediction, get_user_predictions
@@ -73,6 +75,8 @@ if st.session_state.dark_mode:
         }
         .stMarkdown, .stText, .stNumberInput label, .stSelectbox label {
             color: #00ff88 !important;
+            font-size: 16px !important;
+            font-weight: 500 !important;
         }
         h1, h2, h3, h4, h5, h6 {
             color: #00ff88 !important;
@@ -89,7 +93,7 @@ if st.session_state.dark_mode:
         }
         .stButton > button {
             background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
-            color: #0a0a0a;
+            color: #0a0a0a !important;
             border: none;
             padding: 0.75rem;
             font-weight: bold;
@@ -99,8 +103,15 @@ if st.session_state.dark_mode:
             transform: translateY(-2px);
             box-shadow: 0 0 20px rgba(0,255,136,0.5);
         }
-        .stSlider label, .stSelectbox label {
+        .stSlider label {
             color: #00ff88 !important;
+            font-size: 16px !important;
+        }
+        .stSlider [data-baseweb="slider"] {
+            background-color: #00ff88 !important;
+        }
+        .stSlider [data-testid="stTickBar"] {
+            background: #00ff88 !important;
         }
         .stMetric label, .stMetric value {
             color: #00ff88 !important;
@@ -108,6 +119,21 @@ if st.session_state.dark_mode:
         .logo-container {
             text-align: center;
             margin-bottom: 1rem;
+        }
+        /* Fix slider value visibility */
+        .stSlider [data-baseweb="slider"] div[role="slider"] {
+            background-color: #00ff88 !important;
+            border-color: #00ff88 !important;
+        }
+        .stSlider [data-testid="stThumbValue"] {
+            color: #00ff88 !important;
+            background: #0a0a0a !important;
+        }
+        header {
+            display: none;
+        }
+        .main .block-container {
+            padding-top: 1rem;
         }
         </style>
     """
@@ -154,11 +180,21 @@ else:
             background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
         }
         [data-testid="stSidebar"] * {
-            color: white;
+            color: white !important;
         }
         .logo-container {
             text-align: center;
             margin-bottom: 1rem;
+        }
+        .stMarkdown, .stText, .stNumberInput label, .stSelectbox label {
+            font-size: 16px !important;
+            font-weight: 500 !important;
+        }
+        header {
+            display: none;
+        }
+        .main .block-container {
+            padding-top: 1rem;
         }
         </style>
     """
@@ -201,7 +237,7 @@ model, model_columns = load_model()
 
 # Sidebar
 with st.sidebar:
-    st.markdown('<div class="logo-container">', unsafe_allow_html=True)
+    st.markdown('<div style="text-align: center;">', unsafe_allow_html=True)
     show_logo()
     st.markdown('</div>', unsafe_allow_html=True)
     
@@ -244,53 +280,61 @@ with st.sidebar:
         st.session_state.user = None
         st.rerun()
 
-# Main content - Remove empty block
-st.markdown(f"""
-    <div class="main-header">
-        <h1>🎓 Welcome, {st.session_state.user['full_name']}!</h1>
-        <p>Predict your exam score and get personalized recommendations to improve</p>
-    </div>
-""", unsafe_allow_html=True)
+# Main content - Logo with welcome text
+col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
+with col_logo2:
+    st.markdown('<div style="text-align: center;">', unsafe_allow_html=True)
+    try:
+        st.image("logo.png", width=100)
+    except:
+        pass
+    st.markdown(f"""
+        <div class="main-header">
+            <h1>Welcome, {st.session_state.user['full_name']}!</h1>
+            <p>Predict your exam score and get personalized recommendations to improve</p>
+        </div>
+    """, unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # Input Form - Full width
 st.markdown('<div class="input-section">', unsafe_allow_html=True)
 st.markdown("<h2 style='text-align: center;'>📝 Student Information</h2>", unsafe_allow_html=True)
 
 with st.form("prediction_form", clear_on_submit=False):
-    # Academic Information
+    # Academic Information - All sliders default to 0
     st.markdown("### 📚 Academic Information")
     col_a, col_b, col_c = st.columns(3)
     with col_a:
-        hours = st.slider("📖 Hours Studied per Day", 0.0, 24.0, 6.0, 0.5, 
+        hours = st.slider("📖 Hours Studied per Day", 0.0, 24.0, 0.0, 0.5, 
                         help="Recommended: 6-8 hours")
     with col_b:
-        attendance = st.slider("📅 Attendance Percentage", 0.0, 100.0, 85.0, 5.0,
+        attendance = st.slider("📅 Attendance Percentage", 0.0, 100.0, 0.0, 5.0,
                               help="Recommended: 85-100%")
     with col_c:
-        previous = st.slider("📊 Previous Exam Score", 0.0, 100.0, 65.0, 5.0)
+        previous = st.slider("📊 Previous Exam Score", 0.0, 100.0, 0.0, 5.0)
     
     # Personal Factors
     st.markdown("### 💪 Personal Factors")
     col_d, col_e, col_f = st.columns(3)
     with col_d:
-        sleep = st.slider("😴 Sleep Hours per Night", 0.0, 12.0, 7.0, 0.5,
+        sleep = st.slider("😴 Sleep Hours per Night", 0.0, 12.0, 0.0, 0.5,
                         help="Recommended: 7-9 hours")
-        motivation = st.selectbox("🎯 Motivation Level", ["Low", "Medium", "High"], index=2)
+        motivation = st.selectbox("🎯 Motivation Level", ["Low", "Medium", "High"], index=0)
     with col_e:
-        teacher = st.selectbox("👨‍🏫 Teacher Quality", ["Poor", "Average", "Good"], index=2)
-        parent = st.selectbox("👨‍👩‍👧 Parental Involvement", ["Low", "Medium", "High"], index=2)
+        teacher = st.selectbox("👨‍🏫 Teacher Quality", ["Poor", "Average", "Good"], index=0)
+        parent = st.selectbox("👨‍👩‍👧 Parental Involvement", ["Low", "Medium", "High"], index=0)
     with col_f:
-        tutoring = st.selectbox("📚 Tutoring Sessions", [0, 1, 2, 3, 4], index=2)
-        peer = st.selectbox("👥 Peer Influence", ["Negative", "Neutral", "Positive"], index=2)
+        tutoring = st.selectbox("📚 Tutoring Sessions", [0, 1, 2, 3, 4], index=0)
+        peer = st.selectbox("👥 Peer Influence", ["Negative", "Neutral", "Positive"], index=0)
     
     # Environment Factors
     st.markdown("### 🏫 Environment Factors")
     col_g, col_h = st.columns(2)
     with col_g:
-        school = st.selectbox("🏛️ School Type", ["Public", "Private"], index=1)
-        internet = st.selectbox("🌐 Internet Access", ["No", "Yes"], index=1)
+        school = st.selectbox("🏛️ School Type", ["Public", "Private"], index=0)
+        internet = st.selectbox("🌐 Internet Access", ["No", "Yes"], index=0)
     with col_h:
-        activities = st.selectbox("⚽ Extracurricular Activities", ["No", "Yes"], index=1)
+        activities = st.selectbox("⚽ Extracurricular Activities", ["No", "Yes"], index=0)
     
     st.markdown("---")
     submitted = st.form_submit_button("🎯 Predict My Score", use_container_width=True)
@@ -364,13 +408,13 @@ if 'submitted' in locals() and submitted:
         
         # Generate recommendations
         recommendations = []
-        if hours < 6:
+        if hours < 6 and hours > 0:
             recommendations.append("📖 Increase study hours to 6-8 per day")
         if hours > 10:
             recommendations.append("😴 Reduce study hours to avoid burnout")
-        if sleep < 7:
+        if sleep < 7 and sleep > 0:
             recommendations.append("😴 Get 7-9 hours of sleep for better focus")
-        if attendance < 85:
+        if attendance < 85 and attendance > 0:
             recommendations.append("🏫 Improve attendance to 85%+")
         if motivation == "Low":
             recommendations.append("🎯 Set daily goals to boost motivation")
@@ -380,10 +424,8 @@ if 'submitted' in locals() and submitted:
             recommendations.append("👨‍👩‍👧 Discuss studies with parents for support")
         if peer == "Negative":
             recommendations.append("👥 Join positive study groups")
-        if tutoring < 2:
-            recommendations.append("📚 Consider additional tutoring sessions")
-        if activities == "No":
-            recommendations.append("⚽ Extracurricular activities help with overall development")
+        if tutoring == 0:
+            recommendations.append("📚 Consider tutoring sessions for better understanding")
         
         if not recommendations:
             recommendations = ["🌟 Great habits! Keep maintaining your routine"]
@@ -404,22 +446,22 @@ if 'submitted' in locals() and submitted:
         
         # Grade message
         if final_score >= 90:
-            grade, color, emoji = "A+", "#00ff88" if st.session_state.dark_mode else "#4CAF50", "🌟"
+            grade, emoji = "A+", "🌟"
             message = "Outstanding! You're in the top tier!"
         elif final_score >= 80:
-            grade, color, emoji = "A", "#8BC34A" if not st.session_state.dark_mode else "#00ff88", "🎉"
+            grade, emoji = "A", "🎉"
             message = "Very good! Keep up the momentum!"
         elif final_score >= 70:
-            grade, color, emoji = "B", "#FFC107" if not st.session_state.dark_mode else "#00ff88", "📈"
+            grade, emoji = "B", "📈"
             message = "Good! Consistent effort will improve results"
         elif final_score >= 60:
-            grade, color, emoji = "C", "#FF9800" if not st.session_state.dark_mode else "#00ff88", "📚"
+            grade, emoji = "C", "📚"
             message = "Satisfactory. More focus needed"
         elif final_score >= 50:
-            grade, color, emoji = "D", "#FF5722" if not st.session_state.dark_mode else "#00ff88", "⚠️"
+            grade, emoji = "D", "⚠️"
             message = "Needs improvement. Consider tutoring"
         else:
-            grade, color, emoji = "F", "#f44336" if not st.session_state.dark_mode else "#00ff88", "🔴"
+            grade, emoji = "F", "🔴"
             message = "Critical. Immediate intervention recommended"
         
         # Tabs for detailed analysis
@@ -428,45 +470,49 @@ if 'submitted' in locals() and submitted:
         with tab1:
             st.markdown("### 📊 Performance Analysis")
             
-            # Create comparison chart
-            fig = go.Figure()
-            
-            categories = ['Study Hours', 'Attendance', 'Sleep', 'Previous Score', 'Predicted Score']
-            values = [hours, attendance, sleep, previous, final_score]
-            optimal = [7, 85, 8, 85, 85]
-            
-            fig.add_trace(go.Bar(name='Your Value', x=categories, y=values, 
-                                marker_color='#00ff88' if st.session_state.dark_mode else '#667eea'))
-            fig.add_trace(go.Bar(name='Optimal Range', x=categories, y=optimal, 
-                                marker_color='#ff6b6b', opacity=0.7))
-            
-            fig.update_layout(
-                title="Your Performance vs Optimal Ranges",
-                xaxis_title="Metrics",
-                yaxis_title="Value",
-                barmode='group',
-                height=450,
-                template='plotly_dark' if st.session_state.dark_mode else 'plotly_white',
-                paper_bgcolor='rgba(0,0,0,0)' if st.session_state.dark_mode else 'white',
-            )
-            
-            st.plotly_chart(fig, use_container_width=True)
+            # Create comparison chart (only show if values > 0)
+            if hours > 0 or attendance > 0 or sleep > 0 or previous > 0:
+                fig = go.Figure()
+                
+                categories = ['Study Hours', 'Attendance', 'Sleep', 'Previous Score', 'Predicted Score']
+                values = [hours, attendance, sleep, previous, final_score]
+                optimal = [7, 85, 8, 85, 85]
+                
+                fig.add_trace(go.Bar(name='Your Value', x=categories, y=values, 
+                                    marker_color='#00ff88' if st.session_state.dark_mode else '#667eea'))
+                fig.add_trace(go.Bar(name='Optimal Range', x=categories, y=optimal, 
+                                    marker_color='#ff6b6b', opacity=0.7))
+                
+                fig.update_layout(
+                    title="Your Performance vs Optimal Ranges",
+                    xaxis_title="Metrics",
+                    yaxis_title="Value",
+                    barmode='group',
+                    height=450,
+                    template='plotly_dark' if st.session_state.dark_mode else 'plotly_white',
+                    paper_bgcolor='rgba(0,0,0,0)' if st.session_state.dark_mode else 'white',
+                )
+                
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("Enter values above to see performance analysis")
             
             # Key metrics
-            st.markdown("### Key Metrics Analysis")
-            col_m1, col_m2, col_m3, col_m4 = st.columns(4)
-            with col_m1:
-                study_gap = hours - 7
-                st.metric("Study Hours", f"{hours} hrs", f"{study_gap:+.1f} from optimal")
-            with col_m2:
-                attend_gap = attendance - 85
-                st.metric("Attendance", f"{attendance}%", f"{attend_gap:+.0f}%")
-            with col_m3:
-                sleep_gap = sleep - 8
-                st.metric("Sleep Hours", f"{sleep} hrs", f"{sleep_gap:+.1f} hrs")
-            with col_m4:
-                score_gap = final_score - 85
-                st.metric("Target vs Actual", f"{final_score}", f"{score_gap:+.0f}")
+            if hours > 0 or attendance > 0 or sleep > 0:
+                st.markdown("### Key Metrics Analysis")
+                col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+                with col_m1:
+                    study_gap = hours - 7
+                    st.metric("Study Hours", f"{hours} hrs", f"{study_gap:+.1f} from optimal" if hours > 0 else "Not entered")
+                with col_m2:
+                    attend_gap = attendance - 85
+                    st.metric("Attendance", f"{attendance}%", f"{attend_gap:+.0f}%" if attendance > 0 else "Not entered")
+                with col_m3:
+                    sleep_gap = sleep - 8
+                    st.metric("Sleep Hours", f"{sleep} hrs", f"{sleep_gap:+.1f} hrs" if sleep > 0 else "Not entered")
+                with col_m4:
+                    score_gap = final_score - 85
+                    st.metric("Target vs Actual", f"{final_score}", f"{score_gap:+.0f}")
         
         with tab2:
             st.markdown("### 💡 Personalized Recommendations")
@@ -476,13 +522,13 @@ if 'submitted' in locals() and submitted:
             # Impact analysis
             st.markdown("### 📊 Priority Improvement Areas")
             impacts = []
-            if hours < 6:
+            if hours < 6 and hours > 0:
                 impacts.append(("Low Study Hours", -15, "HIGH", "Increase to 6-8 hours"))
             if hours > 10:
                 impacts.append(("Excessive Study", -5, "MEDIUM", "Take more breaks"))
-            if attendance < 85:
+            if attendance < 85 and attendance > 0:
                 impacts.append(("Low Attendance", -12, "HIGH", "Improve attendance"))
-            if sleep < 7:
+            if sleep < 7 and sleep > 0:
                 impacts.append(("Insufficient Sleep", -8, "HIGH", "Get 7-9 hours sleep"))
             if motivation != "High":
                 impacts.append(("Low Motivation", -10, "MEDIUM", "Set daily goals"))
@@ -498,37 +544,40 @@ if 'submitted' in locals() and submitted:
         with tab3:
             st.markdown("### 📈 Detailed Comparison Chart")
             
-            # Radar chart
-            categories_radar = ['Study Hours', 'Attendance', 'Sleep', 'Previous Score', 'Motivation', 'Teacher Quality']
-            values_radar = [
-                min(100, (hours / 8) * 100),
-                attendance,
-                min(100, (sleep / 9) * 100),
-                previous,
-                100 if motivation == "High" else (50 if motivation == "Medium" else 25),
-                100 if teacher == "Good" else (50 if teacher == "Average" else 25)
-            ]
-            
-            fig_radar = go.Figure(data=go.Scatterpolar(
-                r=values_radar,
-                theta=categories_radar,
-                fill='toself',
-                marker_color='#00ff88' if st.session_state.dark_mode else '#667eea'
-            ))
-            
-            fig_radar.update_layout(
-                polar=dict(
-                    radialaxis=dict(
-                        visible=True,
-                        range=[0, 100]
-                    )),
-                showlegend=False,
-                height=450,
-                template='plotly_dark' if st.session_state.dark_mode else 'plotly_white',
-                title="Performance Radar Chart"
-            )
-            
-            st.plotly_chart(fig_radar, use_container_width=True)
+            # Radar chart (only show if values > 0)
+            if hours > 0 or attendance > 0 or sleep > 0 or previous > 0:
+                categories_radar = ['Study Hours', 'Attendance', 'Sleep', 'Previous Score', 'Motivation', 'Teacher Quality']
+                values_radar = [
+                    min(100, (hours / 8) * 100) if hours > 0 else 0,
+                    attendance if attendance > 0 else 0,
+                    min(100, (sleep / 9) * 100) if sleep > 0 else 0,
+                    previous if previous > 0 else 0,
+                    100 if motivation == "High" else (50 if motivation == "Medium" else 25),
+                    100 if teacher == "Good" else (50 if teacher == "Average" else 25)
+                ]
+                
+                fig_radar = go.Figure(data=go.Scatterpolar(
+                    r=values_radar,
+                    theta=categories_radar,
+                    fill='toself',
+                    marker_color='#00ff88' if st.session_state.dark_mode else '#667eea'
+                ))
+                
+                fig_radar.update_layout(
+                    polar=dict(
+                        radialaxis=dict(
+                            visible=True,
+                            range=[0, 100]
+                        )),
+                    showlegend=False,
+                    height=450,
+                    template='plotly_dark' if st.session_state.dark_mode else 'plotly_white',
+                    title="Performance Radar Chart"
+                )
+                
+                st.plotly_chart(fig_radar, use_container_width=True)
+            else:
+                st.info("Enter values above to see radar chart")
         
         with tab4:
             # History comparison
@@ -541,7 +590,6 @@ if 'submitted' in locals() and submitted:
                                 template='plotly_dark' if st.session_state.dark_mode else 'plotly_white')
                 st.plotly_chart(fig, use_container_width=True)
                 
-                # Improvement rate
                 if len(user_pred_df) >= 2:
                     first = user_pred_df.iloc[-1]['predicted_score']
                     last = user_pred_df.iloc[0]['predicted_score']
@@ -555,24 +603,31 @@ if 'submitted' in locals() and submitted:
             else:
                 st.info("📊 Make more predictions to see your progress over time!")
         
-        # Download Report Button
+        # Download Report Button - Fixed
         st.markdown("---")
-        if st.button("📥 Download Detailed Report (PDF)", use_container_width=True):
-            with st.spinner("Generating your report..."):
-                pdf_buffer = generate_pdf_report(
-                    st.session_state.user,
-                    input_data,
-                    final_score,
-                    recommendations
-                )
-                
-                st.download_button(
-                    label="💾 Click to Save PDF Report",
-                    data=pdf_buffer,
-                    file_name=f"student_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
-                    mime="application/pdf",
-                    use_container_width=True
-                )
+        col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
+        with col_btn2:
+            if st.button("📥 Download Detailed Report (PDF)", use_container_width=True):
+                with st.spinner("Generating your report..."):
+                    try:
+                        pdf_buffer = generate_pdf_report(
+                            st.session_state.user,
+                            input_data,
+                            final_score,
+                            recommendations
+                        )
+                        
+                        st.download_button(
+                            label="💾 Click to Save PDF Report",
+                            data=pdf_buffer,
+                            file_name=f"student_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                            mime="application/pdf",
+                            use_container_width=True
+                        )
+                        st.success("✅ Report generated successfully!")
+                    except Exception as e:
+                        st.error(f"Error generating report: {str(e)}")
+                        st.info("Please try again or contact support.")
 
 # Footer
 st.markdown("---")
