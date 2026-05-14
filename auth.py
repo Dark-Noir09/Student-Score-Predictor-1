@@ -1,5 +1,6 @@
 import streamlit as st
-from database import login_user, register_user
+from database import login_user, register_user, get_all_predictions, get_all_users, delete_user
+from datetime import datetime
 
 def init_session_state():
     """Initialize session state variables"""
@@ -9,6 +10,8 @@ def init_session_state():
         st.session_state.user = None
     if 'page' not in st.session_state:
         st.session_state.page = 'login'
+    if 'dark_mode' not in st.session_state:
+        st.session_state.dark_mode = False
 
 def login_page():
     """Render login page"""
@@ -31,6 +34,15 @@ def login_page():
             color: #667eea;
             margin-bottom: 0.5rem;
         }
+        .stButton > button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            font-weight: bold;
+            border-radius: 10px;
+            width: 100%;
+        }
         </style>
     """, unsafe_allow_html=True)
     
@@ -44,7 +56,7 @@ def login_page():
         
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("Login", use_container_width=True, type="primary"):
+            if st.button("Login", key="login_btn", use_container_width=True):
                 if username and password:
                     user = login_user(username, password)
                     if user:
@@ -57,7 +69,7 @@ def login_page():
                     st.warning("Please enter username and password")
         
         with col2:
-            if st.button("Create Account", use_container_width=True):
+            if st.button("Create Account", key="register_btn", use_container_width=True):
                 st.session_state.page = 'register'
                 st.rerun()
         
@@ -99,7 +111,13 @@ def register_page():
                 password = st.text_input("Password *", type="password", placeholder="Min 4 characters")
                 confirm_password = st.text_input("Confirm Password *", type="password")
             
-            submitted = st.form_submit_button("Register", use_container_width=True, type="primary")
+            col_btn1, col_btn2 = st.columns(2)
+            with col_btn1:
+                submitted = st.form_submit_button("Register", use_container_width=True)
+            with col_btn2:
+                if st.form_submit_button("← Back to Login", use_container_width=True):
+                    st.session_state.page = 'login'
+                    st.rerun()
             
             if submitted:
                 if not full_name or not username or not password or not school_name:
@@ -114,21 +132,16 @@ def register_page():
                         st.success(message)
                         st.balloons()
                         st.info("Please login with your credentials")
-                        import time
-                        time.sleep(2)
                         st.session_state.page = 'login'
                         st.rerun()
                     else:
                         st.error(message)
-            
-            if st.button("← Back to Login", use_container_width=True):
-                st.session_state.page = 'login'
-                st.rerun()
         
         st.markdown('</div>', unsafe_allow_html=True)
 
 def admin_panel():
     """Render admin panel"""
+    # Custom CSS for admin panel
     st.markdown("""
         <style>
         .admin-header {
@@ -150,69 +163,117 @@ def admin_panel():
     
     st.markdown('<div class="admin-header"><h1>🔐 Admin Panel</h1><p>Manage users and view all predictions</p></div>', unsafe_allow_html=True)
     
-    from database import get_all_predictions
+    # Tabs for different admin sections
+    tab1, tab2, tab3 = st.tabs(["📊 Dashboard Overview", "👥 Manage Users", "📋 All Predictions"])
     
-    predictions_df = get_all_predictions()
+    with tab1:
+        predictions_df = get_all_predictions()
+        users_df = get_all_users()
+        
+        if not predictions_df.empty:
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.markdown('<div class="stat-card">', unsafe_allow_html=True)
+                st.metric("Total Predictions", len(predictions_df))
+                st.markdown('</div>', unsafe_allow_html=True)
+            with col2:
+                st.markdown('<div class="stat-card">', unsafe_allow_html=True)
+                st.metric("Total Users", len(users_df))
+                st.markdown('</div>', unsafe_allow_html=True)
+            with col3:
+                st.markdown('<div class="stat-card">', unsafe_allow_html=True)
+                st.metric("Average Score", f"{predictions_df['predicted_score'].mean():.1f}")
+                st.markdown('</div>', unsafe_allow_html=True)
+            with col4:
+                st.markdown('<div class="stat-card">', unsafe_allow_html=True)
+                high_scores = len(predictions_df[predictions_df['predicted_score'] >= 90])
+                st.metric("High Scorers (90+)", high_scores)
+                st.markdown('</div>', unsafe_allow_html=True)
+        else:
+            st.info("No predictions yet")
     
-    if not predictions_df.empty:
-        st.subheader("📊 Dashboard Overview")
+    with tab2:
+        st.subheader("👥 Registered Users")
+        users_df = get_all_users()
         
-        # Stats
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.markdown('<div class="stat-card">', unsafe_allow_html=True)
-            st.metric("Total Predictions", len(predictions_df))
-            st.markdown('</div>', unsafe_allow_html=True)
-        with col2:
-            st.markdown('<div class="stat-card">', unsafe_allow_html=True)
-            st.metric("Unique Users", predictions_df['username'].nunique())
-            st.markdown('</div>', unsafe_allow_html=True)
-        with col3:
-            st.markdown('<div class="stat-card">', unsafe_allow_html=True)
-            st.metric("Average Score", f"{predictions_df['predicted_score'].mean():.1f}")
-            st.markdown('</div>', unsafe_allow_html=True)
-        with col4:
-            st.markdown('<div class="stat-card">', unsafe_allow_html=True)
-            high_scores = len(predictions_df[predictions_df['predicted_score'] >= 90])
-            st.metric("High Scorers (90+)", high_scores)
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        st.markdown("---")
+        if not users_df.empty:
+            # Search filter
+            search = st.text_input("🔍 Search users", placeholder="Search by username or name...")
+            if search:
+                users_df = users_df[
+                    users_df['username'].str.contains(search, case=False) |
+                    users_df['full_name'].str.contains(search, case=False)
+                ]
+            
+            # Display users with delete option
+            for idx, user in users_df.iterrows():
+                col1, col2, col3, col4, col5 = st.columns([2, 2, 2, 2, 1])
+                with col1:
+                    st.write(f"**{user['full_name']}**")
+                with col2:
+                    st.write(f"@{user['username']}")
+                with col3:
+                    st.write(user['school_name'])
+                with col4:
+                    st.write(user['email'] if user['email'] else "N/A")
+                with col5:
+                    if st.button("🗑️ Delete", key=f"del_{user['id']}"):
+                        if delete_user(user['id']):
+                            st.success(f"User {user['username']} deleted successfully!")
+                            st.rerun()
+                        else:
+                            st.error("Failed to delete user")
+                st.divider()
+        else:
+            st.info("No users found")
+    
+    with tab3:
         st.subheader("📋 All Predictions")
+        predictions_df = get_all_predictions()
         
-        # Search filter
-        search = st.text_input("🔍 Search by username or name", placeholder="Type to search...")
-        if search:
-            predictions_df = predictions_df[
-                predictions_df['username'].str.contains(search, case=False) |
-                predictions_df['full_name'].str.contains(search, case=False)
-            ]
-        
-        # Display table
-        st.dataframe(
-            predictions_df,
-            use_container_width=True,
-            column_config={
-                "id": "ID",
-                "username": "Username",
-                "full_name": "Full Name",
-                "school_name": "School",
-                "grade": "Grade",
-                "email": "Email",
-                "predicted_score": st.column_config.NumberColumn("Score", format="%d"),
-                "prediction_date": st.column_config.DatetimeColumn("Date"),
-            },
-            hide_index=True
-        )
-        
-        # Export option
-        csv = predictions_df.to_csv(index=False)
-        st.download_button(
-            label="📥 Export to CSV",
-            data=csv,
-            file_name=f"predictions_export_{datetime.now().strftime('%Y%m%d')}.csv",
-            mime="text/csv",
-            use_container_width=True
-        )
-    else:
-        st.info("📭 No predictions yet. Users will appear here once they make predictions.")
+        if not predictions_df.empty:
+            # Search filter
+            search = st.text_input("🔍 Search predictions", placeholder="Search by username or name...", key="pred_search")
+            if search:
+                predictions_df = predictions_df[
+                    predictions_df['username'].str.contains(search, case=False) |
+                    predictions_df['full_name'].str.contains(search, case=False)
+                ]
+            
+            # Display table
+            st.dataframe(
+                predictions_df,
+                use_container_width=True,
+                column_config={
+                    "id": "ID",
+                    "username": "Username",
+                    "full_name": "Full Name",
+                    "school_name": "School",
+                    "grade": "Grade",
+                    "email": "Email",
+                    "predicted_score": st.column_config.NumberColumn("Score", format="%d"),
+                    "prediction_date": st.column_config.DatetimeColumn("Date"),
+                    "created_at": st.column_config.DatetimeColumn("Registered"),
+                },
+                hide_index=True
+            )
+            
+            # Export option
+            csv = predictions_df.to_csv(index=False)
+            from datetime import datetime
+            st.download_button(
+                label="📥 Export All Data to CSV",
+                data=csv,
+                file_name=f"predictions_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                mime="text/csv",
+                use_container_width=True
+            )
+        else:
+            st.info("No predictions yet")
+    
+    # Logout button
+    st.markdown("---")
+    if st.button("🚪 Logout from Admin Panel", use_container_width=True):
+        st.session_state.logged_in = False
+        st.session_state.user = None
+        st.rerun()
