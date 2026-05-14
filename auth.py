@@ -24,7 +24,7 @@ def login_page():
             background: white;
             border-radius: 20px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            margin-top: 50px;
+            margin-top: 30px;
         }
         .login-header {
             text-align: center;
@@ -33,6 +33,10 @@ def login_page():
         .login-header h1 {
             color: #667eea;
             margin-bottom: 0.5rem;
+        }
+        .logo-container {
+            text-align: center;
+            margin-bottom: 1rem;
         }
         .stButton > button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -49,7 +53,15 @@ def login_page():
     with st.container():
         st.markdown('<div class="login-container">', unsafe_allow_html=True)
         
-        st.markdown('<div class="login-header"><h1>🎓 Student Score Predictor</h1><p>Login to access your dashboard</p></div>', unsafe_allow_html=True)
+        # Logo
+        st.markdown('<div class="logo-container">', unsafe_allow_html=True)
+        try:
+            st.image("logo.png", width=120)
+        except:
+            st.markdown("<h1 style='text-align: center; font-size: 3rem;'>🎓</h1>", unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        st.markdown('<div class="login-header"><h1>Student Score Predictor</h1><p>Login to access your dashboard</p></div>', unsafe_allow_html=True)
         
         username = st.text_input("Username", key="login_username", placeholder="Enter your username")
         password = st.text_input("Password", type="password", key="login_password", placeholder="Enter your password")
@@ -73,8 +85,6 @@ def login_page():
                 st.session_state.page = 'register'
                 st.rerun()
         
-        st.markdown("---")
-        st.caption("Demo Admin Access: username: admin, password: admin123")
         st.markdown('</div>', unsafe_allow_html=True)
 
 def register_page():
@@ -88,13 +98,25 @@ def register_page():
             background: white;
             border-radius: 20px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            margin-top: 50px;
+            margin-top: 30px;
+        }
+        .logo-container {
+            text-align: center;
+            margin-bottom: 1rem;
         }
         </style>
     """, unsafe_allow_html=True)
     
     with st.container():
         st.markdown('<div class="register-container">', unsafe_allow_html=True)
+        
+        # Logo
+        st.markdown('<div class="logo-container">', unsafe_allow_html=True)
+        try:
+            st.image("logo.png", width=100)
+        except:
+            st.markdown("<h1 style='text-align: center; font-size: 2.5rem;'>🎓</h1>", unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
         
         st.markdown("<h1 style='text-align: center; color: #667eea;'>📝 Create Account</h1>", unsafe_allow_html=True)
         st.markdown("<p style='text-align: center;'>Join us to track your academic progress</p>", unsafe_allow_html=True)
@@ -141,7 +163,6 @@ def register_page():
 
 def admin_panel():
     """Render admin panel"""
-    # Custom CSS for admin panel
     st.markdown("""
         <style>
         .admin-header {
@@ -150,6 +171,11 @@ def admin_panel():
             border-radius: 10px;
             color: white;
             margin-bottom: 2rem;
+            text-align: center;
+        }
+        .logo-container {
+            text-align: center;
+            margin-bottom: 1rem;
         }
         .stat-card {
             background: white;
@@ -161,9 +187,17 @@ def admin_panel():
         </style>
     """, unsafe_allow_html=True)
     
+    # Logo
+    st.markdown('<div class="logo-container">', unsafe_allow_html=True)
+    try:
+        st.image("logo.png", width=80)
+    except:
+        pass
+    st.markdown('</div>', unsafe_allow_html=True)
+    
     st.markdown('<div class="admin-header"><h1>🔐 Admin Panel</h1><p>Manage users and view all predictions</p></div>', unsafe_allow_html=True)
     
-    # Tabs for different admin sections
+    # Tabs
     tab1, tab2, tab3 = st.tabs(["📊 Dashboard Overview", "👥 Manage Users", "📋 All Predictions"])
     
     with tab1:
@@ -197,7 +231,6 @@ def admin_panel():
         users_df = get_all_users()
         
         if not users_df.empty:
-            # Search filter
             search = st.text_input("🔍 Search users", placeholder="Search by username or name...")
             if search:
                 users_df = users_df[
@@ -205,7 +238,6 @@ def admin_panel():
                     users_df['full_name'].str.contains(search, case=False)
                 ]
             
-            # Display users with delete option
             for idx, user in users_df.iterrows():
                 col1, col2, col3, col4, col5 = st.columns([2, 2, 2, 2, 1])
                 with col1:
@@ -232,7 +264,6 @@ def admin_panel():
         predictions_df = get_all_predictions()
         
         if not predictions_df.empty:
-            # Search filter
             search = st.text_input("🔍 Search predictions", placeholder="Search by username or name...", key="pred_search")
             if search:
                 predictions_df = predictions_df[
@@ -240,7 +271,6 @@ def admin_panel():
                     predictions_df['full_name'].str.contains(search, case=False)
                 ]
             
-            # Display table
             st.dataframe(
                 predictions_df,
                 use_container_width=True,
@@ -258,7 +288,6 @@ def admin_panel():
                 hide_index=True
             )
             
-            # Export option
             csv = predictions_df.to_csv(index=False)
             from datetime import datetime
             st.download_button(
@@ -271,8 +300,6 @@ def admin_panel():
         else:
             st.info("No predictions yet")
     
-    # Logout button
-    st.markdown("---")
     if st.button("🚪 Logout from Admin Panel", use_container_width=True):
         st.session_state.logged_in = False
         st.session_state.user = None
