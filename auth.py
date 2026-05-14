@@ -17,6 +17,11 @@ def login_page():
     """Render login page"""
     st.markdown("""
         <style>
+        /* Remove default padding and margins */
+        .main .block-container {
+            padding-top: 0rem;
+            padding-bottom: 0rem;
+        }
         .login-container {
             max-width: 450px;
             margin: 0 auto;
@@ -24,7 +29,7 @@ def login_page():
             background: white;
             border-radius: 20px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            margin-top: 30px;
+            margin-top: 20px;
         }
         .login-header {
             text-align: center;
@@ -47,18 +52,24 @@ def login_page():
             border-radius: 10px;
             width: 100%;
         }
+        /* Remove empty space at top */
+        header {
+            display: none;
+        }
         </style>
     """, unsafe_allow_html=True)
     
-    with st.container():
+    # Remove empty space by using empty columns
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
         st.markdown('<div class="login-container">', unsafe_allow_html=True)
         
-        # Logo
+        # Centered Logo
         st.markdown('<div class="logo-container">', unsafe_allow_html=True)
         try:
-            st.image("logo.png", width=120)
+            st.image("logo.png", width=100)
         except:
-            st.markdown("<h1 style='text-align: center; font-size: 3rem;'>🎓</h1>", unsafe_allow_html=True)
+            st.markdown("<h1 style='text-align: center; font-size: 3rem; margin:0;'>🎓</h1>", unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
         
         st.markdown('<div class="login-header"><h1>Student Score Predictor</h1><p>Login to access your dashboard</p></div>', unsafe_allow_html=True)
@@ -91,6 +102,10 @@ def register_page():
     """Render registration page"""
     st.markdown("""
         <style>
+        .main .block-container {
+            padding-top: 0rem;
+            padding-bottom: 0rem;
+        }
         .register-container {
             max-width: 550px;
             margin: 0 auto;
@@ -98,24 +113,28 @@ def register_page():
             background: white;
             border-radius: 20px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            margin-top: 30px;
+            margin-top: 20px;
         }
         .logo-container {
             text-align: center;
             margin-bottom: 1rem;
         }
+        header {
+            display: none;
+        }
         </style>
     """, unsafe_allow_html=True)
     
-    with st.container():
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
         st.markdown('<div class="register-container">', unsafe_allow_html=True)
         
-        # Logo
+        # Centered Logo
         st.markdown('<div class="logo-container">', unsafe_allow_html=True)
         try:
             st.image("logo.png", width=100)
         except:
-            st.markdown("<h1 style='text-align: center; font-size: 2.5rem;'>🎓</h1>", unsafe_allow_html=True)
+            st.markdown("<h1 style='text-align: center; font-size: 2.5rem; margin:0;'>🎓</h1>", unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
         
         st.markdown("<h1 style='text-align: center; color: #667eea;'>📝 Create Account</h1>", unsafe_allow_html=True)
@@ -183,6 +202,9 @@ def admin_panel():
             border-radius: 10px;
             text-align: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        header {
+            display: none;
         }
         </style>
     """, unsafe_allow_html=True)
