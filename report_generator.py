@@ -6,7 +6,7 @@ from reportlab.lib.units import inch
 from datetime import datetime
 import io
 
-def generate_pdf_report(user_info, input_data, predicted_score, recommendations, comparison_chart_path=None):
+def generate_pdf_report(user_info, input_data, predicted_score, recommendations):
     """Generate PDF report for student"""
     
     pdf_buffer = io.BytesIO()
@@ -52,27 +52,21 @@ def generate_pdf_report(user_info, input_data, predicted_score, recommendations,
     if predicted_score >= 90:
         grade = "A+ (Excellent)"
         message = "Outstanding performance! You're in the top tier."
-        color = colors.HexColor('#4CAF50')
     elif predicted_score >= 80:
         grade = "A (Very Good)"
         message = "Very good performance! Keep up the momentum."
-        color = colors.HexColor('#8BC34A')
     elif predicted_score >= 70:
         grade = "B (Good)"
         message = "Good performance. Consistent effort will lead to improvement."
-        color = colors.HexColor('#FFC107')
     elif predicted_score >= 60:
         grade = "C (Satisfactory)"
         message = "Satisfactory. More focused study time recommended."
-        color = colors.HexColor('#FF9800')
     elif predicted_score >= 50:
         grade = "D (Needs Improvement)"
         message = "Needs improvement. Consider tutoring or study groups."
-        color = colors.HexColor('#FF5722')
     else:
         grade = "F (Critical)"
         message = "Critical level. Immediate intervention recommended."
-        color = colors.HexColor('#f44336')
     
     story.append(Paragraph(f"<b>Grade:</b> {grade}", styles['Normal']))
     story.append(Paragraph(f"<b>Interpretation:</b> {message}", styles['Normal']))
@@ -119,35 +113,9 @@ def generate_pdf_report(user_info, input_data, predicted_score, recommendations,
     
     story.append(Spacer(1, 20))
     
-    # Impact Analysis
-    story.append(Paragraph("<b>📈 Key Areas for Improvement</b>", styles['Heading2']))
-    
-    impacts = []
-    if input_data['Hours_Studied'] < 6:
-        impacts.append("• Study Hours: Increase to 6-8 hours per day")
-    if input_data['Attendance'] < 85:
-        impacts.append("• Attendance: Maintain 85%+ attendance")
-    if input_data['Sleep_Hours'] < 7:
-        impacts.append("• Sleep: Get 7-9 hours of quality sleep")
-    if input_data['Motivation_Level'] != "High":
-        impacts.append("• Motivation: Set daily goals and rewards")
-    if input_data['Teacher_Quality'] != "Good":
-        impacts.append("• Teacher Quality: Seek additional learning resources")
-    if input_data['Parental_Involvement'] != "High":
-        impacts.append("• Parental Involvement: Discuss studies with parents")
-    
-    if impacts:
-        for impact in impacts[:5]:
-            story.append(Paragraph(impact, styles['Normal']))
-            story.append(Spacer(1, 6))
-    else:
-        story.append(Paragraph("✓ All metrics are optimal! Great job maintaining good habits.", styles['Normal']))
-    
-    story.append(Spacer(1, 20))
-    
     # Footer
     story.append(Spacer(1, 30))
-    footer_text = "This report is generated based on predictive analysis using historical student performance data. Actual results may vary. For best results, follow the recommendations above."
+    footer_text = "This report is generated based on predictive analysis using historical student performance data. Actual results may vary."
     story.append(Paragraph(footer_text, styles['Italic']))
     
     doc.build(story)
