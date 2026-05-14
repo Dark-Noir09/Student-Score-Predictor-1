@@ -17,10 +17,33 @@ def login_page():
     """Render login page"""
     st.markdown("""
         <style>
-        /* Remove default padding and margins */
-        .main .block-container {
-            padding-top: 0rem;
-            padding-bottom: 0rem;
+        /* Completely remove ALL default Streamlit padding and margins */
+        #root > div:first-child {
+            padding-top: 0 !important;
+        }
+        .main > div {
+            padding-top: 0 !important;
+        }
+        .block-container {
+            padding-top: 0rem !important;
+            padding-bottom: 0rem !important;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+            max-width: 100% !important;
+        }
+        header[data-testid="stHeader"] {
+            display: none !important;
+        }
+        [data-testid="stDecoration"] {
+            display: none !important;
+        }
+        [data-testid="stStatusWidget"] {
+            display: none !important;
+        }
+        /* Remove empty space at top of app */
+        .stApp {
+            margin-top: 0px !important;
+            padding-top: 0px !important;
         }
         .login-container {
             max-width: 450px;
@@ -29,7 +52,7 @@ def login_page():
             background: white;
             border-radius: 20px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            margin-top: 20px;
+            margin-top: 0px;
         }
         .login-header {
             text-align: center;
@@ -38,6 +61,7 @@ def login_page():
         .login-header h1 {
             color: #667eea;
             margin-bottom: 0.5rem;
+            font-size: 1.8rem;
         }
         .logo-container {
             text-align: center;
@@ -52,14 +76,19 @@ def login_page():
             border-radius: 10px;
             width: 100%;
         }
-        /* Remove empty space at top */
-        header {
-            display: none;
+        .stButton > button:hover {
+            transform: translateY(-2px);
+            transition: transform 0.2s;
         }
+        /* Hide Streamlit branding */
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
         </style>
     """, unsafe_allow_html=True)
     
-    # Remove empty space by using empty columns
+    # Create a container with no extra spacing
+    st.markdown('<div style="height: 10vh;"></div>', unsafe_allow_html=True)
+    
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown('<div class="login-container">', unsafe_allow_html=True)
@@ -67,18 +96,21 @@ def login_page():
         # Centered Logo
         st.markdown('<div class="logo-container">', unsafe_allow_html=True)
         try:
-            st.image("logo.png", width=100)
+            st.image("logo.png", width=120, use_column_width=False)
         except:
             st.markdown("<h1 style='text-align: center; font-size: 3rem; margin:0;'>🎓</h1>", unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
         
         st.markdown('<div class="login-header"><h1>Student Score Predictor</h1><p>Login to access your dashboard</p></div>', unsafe_allow_html=True)
         
-        username = st.text_input("Username", key="login_username", placeholder="Enter your username")
-        password = st.text_input("Password", type="password", key="login_password", placeholder="Enter your password")
+        username = st.text_input("Username", key="login_username", placeholder="Enter your username", label_visibility="collapsed")
+        st.markdown("<br>", unsafe_allow_html=True)
+        password = st.text_input("Password", type="password", key="login_password", placeholder="Enter your password", label_visibility="collapsed")
         
-        col1, col2 = st.columns(2)
-        with col1:
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        col_btn1, col_btn2 = st.columns(2)
+        with col_btn1:
             if st.button("Login", key="login_btn", use_container_width=True):
                 if username and password:
                     user = login_user(username, password)
@@ -91,7 +123,7 @@ def login_page():
                 else:
                     st.warning("Please enter username and password")
         
-        with col2:
+        with col_btn2:
             if st.button("Create Account", key="register_btn", use_container_width=True):
                 st.session_state.page = 'register'
                 st.rerun()
@@ -102,9 +134,32 @@ def register_page():
     """Render registration page"""
     st.markdown("""
         <style>
-        .main .block-container {
-            padding-top: 0rem;
-            padding-bottom: 0rem;
+        /* Completely remove ALL default Streamlit padding and margins */
+        #root > div:first-child {
+            padding-top: 0 !important;
+        }
+        .main > div {
+            padding-top: 0 !important;
+        }
+        .block-container {
+            padding-top: 0rem !important;
+            padding-bottom: 0rem !important;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+            max-width: 100% !important;
+        }
+        header[data-testid="stHeader"] {
+            display: none !important;
+        }
+        [data-testid="stDecoration"] {
+            display: none !important;
+        }
+        [data-testid="stStatusWidget"] {
+            display: none !important;
+        }
+        .stApp {
+            margin-top: 0px !important;
+            padding-top: 0px !important;
         }
         .register-container {
             max-width: 550px;
@@ -113,17 +168,18 @@ def register_page():
             background: white;
             border-radius: 20px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            margin-top: 20px;
+            margin-top: 0px;
         }
         .logo-container {
             text-align: center;
             margin-bottom: 1rem;
         }
-        header {
-            display: none;
-        }
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
         </style>
     """, unsafe_allow_html=True)
+    
+    st.markdown('<div style="height: 5vh;"></div>', unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
@@ -132,7 +188,7 @@ def register_page():
         # Centered Logo
         st.markdown('<div class="logo-container">', unsafe_allow_html=True)
         try:
-            st.image("logo.png", width=100)
+            st.image("logo.png", width=120, use_column_width=False)
         except:
             st.markdown("<h1 style='text-align: center; font-size: 2.5rem; margin:0;'>🎓</h1>", unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
@@ -203,16 +259,17 @@ def admin_panel():
             text-align: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        header {
-            display: none;
-        }
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
         </style>
     """, unsafe_allow_html=True)
     
     # Logo
     st.markdown('<div class="logo-container">', unsafe_allow_html=True)
     try:
-        st.image("logo.png", width=80)
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            st.image("logo.png", width=100)
     except:
         pass
     st.markdown('</div>', unsafe_allow_html=True)
