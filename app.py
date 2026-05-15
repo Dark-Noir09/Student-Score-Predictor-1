@@ -280,25 +280,6 @@ if submitted:
             else:
                 st.info("Make more predictions to see your progress")
 
-        # Download PDF button
-        st.markdown("---")
-        col_btn1, col_btn2, col_btn3 = st.columns([1,2,1])
-        with col_btn2:
-            if st.button("📥 Download Detailed Report (PDF)", use_container_width=True):
-                with st.spinner("Generating PDF report..."):
-                    try:
-                        pdf = generate_pdf_report(st.session_state.user, input_data, final_score, recs)
-                        st.download_button(
-                            label="💾 Click to Save PDF Report",
-                            data=pdf,
-                            file_name=f"student_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
-                            mime="application/pdf",
-                            use_container_width=True
-                        )
-                        st.success("✅ Report ready! Click the button above to save.")
-                    except Exception as e:
-                        st.error(f"Error generating report: {str(e)}")
-                        st.info("Please try again or contact support.")
-
+       
 st.markdown("---")
 st.markdown('<div style="text-align: center;"><p>🎓 Student Score Predictor by Group 3 | Based on Machine Learning Analysis</p><p style="font-size: 0.8rem;">Predictions based on historical data patterns.</p></div>', unsafe_allow_html=True)
