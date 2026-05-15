@@ -81,7 +81,7 @@ with st.sidebar:
     col_logo1, col_logo2, col_logo3 = st.columns([1,2,1])
     with col_logo2:
         try:
-            st.image("logo.png", width=80)
+            show_logo( width=80)
         except:
             st.markdown("<h2 style='text-align: center;'>🎓</h2>", unsafe_allow_html=True)
     st.markdown("---")
@@ -111,7 +111,7 @@ with st.sidebar:
 col_logo1, col_logo2, col_logo3 = st.columns([1,2,1])
 with col_logo2:
     try:
-        st.image("logo.png", width=120)
+        show_logo(width=120)
     except:
         st.markdown("<h1 style='text-align: center; font-size: 4rem;'>🎓</h1>", unsafe_allow_html=True)
 
