@@ -29,7 +29,7 @@ def login_page():
         # Centered logo with larger width (100)
         st.markdown('<div class="logo-container">', unsafe_allow_html=True)
         try:
-            st.image("logo.png", width=100, use_column_width=False)
+            st.image("logo.png", width=1, use_column_width=False)
         except:
             st.markdown("<h1 style='font-size:3rem;'>🎓</h1>", unsafe_allow_html=True)
         st.markdown('</div>')
