@@ -130,7 +130,7 @@ def admin_panel():
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         try:
-            st.image("logo.png", width=80)
+            show_logo("logo.png", width=80)
         except:
             st.markdown("<h1 style='text-align: center;'>🎓</h1>", unsafe_allow_html=True)
     
