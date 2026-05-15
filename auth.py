@@ -13,41 +13,52 @@ def init_session_state():
         st.session_state.dark_mode = False
 
 def login_page():
+    # Remove default Streamlit padding and headers
     st.markdown("""
         <style>
         .main .block-container { padding-top: 0rem !important; }
-        header, #MainMenu, footer { display: none !important; }
-        .login-container { max-width: 400px; margin: 0 auto; padding: 1.5rem; text-align: center; background: transparent; }
-        .logo-container { text-align: center; margin-bottom: 1rem; }
+        header[data-testid="stHeader"] { display: none !important; }
+        #MainMenu, footer { visibility: hidden !important; }
         </style>
     """, unsafe_allow_html=True)
     
-    st.markdown('<div style="height: 10vh;"></div>', unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1,2,1])
+    # Add space at top
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    
+    # Center everything using columns
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.markdown('<div class="login-container">', unsafe_allow_html=True)
-        # Centered logo with larger width (100)
-        st.markdown('<div class="logo-container">', unsafe_allow_html=True)
+        # Logo - centered using st.image with use_container_width=False, but inside column it centers
         try:
-            st.image("logo.png", width=100, use_column_width=False)
+            st.image("logo.png", width=100)
         except:
-            st.markdown("<h1 style='font-size:3rem;'>🎓</h1>", unsafe_allow_html=True)
-        st.markdown('</div>')
-        st.markdown("<h2 style='color:#667eea;'>Student Score Predictor</h2>")
-        st.markdown("<p>Login to access your dashboard</p>")
+            st.markdown("<h1 style='text-align: center;'>🎓</h1>", unsafe_allow_html=True)
+        
+        st.markdown("<h2 style='text-align: center; color: #667eea;'>Student Score Predictor</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center;'>Login to access your dashboard</p>", unsafe_allow_html=True)
+        
         username = st.text_input("Username", placeholder="Enter your username", label_visibility="collapsed")
         password = st.text_input("Password", type="password", placeholder="Enter your password", label_visibility="collapsed")
+        
         st.markdown("<br>", unsafe_allow_html=True)
+        
         col_btn1, col_btn2 = st.columns(2)
         with col_btn1:
             if st.button("Login", key="login_btn", use_container_width=True):
-                # ... (keep your existing login logic)
-                pass
+                if username and password:
+                    user = login_user(username, password)
+                    if user:
+                        st.session_state.logged_in = True
+                        st.session_state.user = user
+                        st.rerun()
+                    else:
+                        st.error("Invalid username or password")
+                else:
+                    st.warning("Please enter username and password")
         with col_btn2:
             if st.button("Create Account", key="register_btn", use_container_width=True):
                 st.session_state.page = 'register'
                 st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
 
 def register_page():
     st.markdown("""
@@ -55,22 +66,20 @@ def register_page():
         .main .block-container { padding-top: 0rem !important; }
         header { display: none !important; }
         footer { visibility: hidden !important; }
-        .stForm { background: transparent !important; }
-        .register-container { max-width: 500px; margin: 0 auto; padding: 1.5rem; background: transparent; }
-        .logo-container { text-align: center; margin-bottom: 1rem; }
         </style>
     """, unsafe_allow_html=True)
-    st.markdown('<div style="height: 5vh;"></div>', unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1,2,1])
+    
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.markdown('<div class="register-container">', unsafe_allow_html=True)
-        st.markdown('<div class="logo-container">', unsafe_allow_html=True)
         try:
-            st.image("logo.png", width=60)
+            st.image("logo.png", width=100)
         except:
-            st.markdown("<h1 style='font-size:2.5rem;'>🎓</h1>", unsafe_allow_html=True)
-        st.markdown('</div>')
-        st.markdown("<h2 style='text-align:center;color:#667eea;'>📝 Create Account</h2>", unsafe_allow_html=True)
+            st.markdown("<h1 style='text-align: center;'>🎓</h1>", unsafe_allow_html=True)
+        
+        st.markdown("<h2 style='text-align: center; color: #667eea;'>📝 Create Account</h2>", unsafe_allow_html=True)
+        
         with st.form("register_form"):
             col1, col2 = st.columns(2)
             with col1:
@@ -82,6 +91,7 @@ def register_page():
                 grade = st.text_input("Grade/Year", placeholder="12th Grade")
                 password = st.text_input("Password *", type="password", placeholder="Min 4 characters")
                 confirm_password = st.text_input("Confirm Password *", type="password")
+            
             col_btn1, col_btn2 = st.columns(2)
             with col_btn1:
                 submitted = st.form_submit_button("Register", use_container_width=True)
@@ -89,6 +99,7 @@ def register_page():
                 if st.form_submit_button("← Back to Login", use_container_width=True):
                     st.session_state.page = 'login'
                     st.rerun()
+            
             if submitted:
                 if not all([full_name, username, password, school_name]):
                     st.error("Please fill all required fields (*)")
@@ -106,35 +117,39 @@ def register_page():
                         st.rerun()
                     else:
                         st.error(msg)
-        st.markdown('</div>', unsafe_allow_html=True)
 
 def admin_panel():
     st.markdown("""
         <style>
         .admin-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1.5rem; border-radius: 10px; color: white; text-align: center; }
-        .logo-container { text-align: center; margin-bottom: 1rem; }
         .stat-card { background: white; padding: 1rem; border-radius: 10px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         </style>
     """, unsafe_allow_html=True)
-    st.markdown('<div class="logo-container">', unsafe_allow_html=True)
-    try:
-        st.image("logo.png", width=50)
-    except:
-        pass
-    st.markdown('</div>')
+    
+    # Logo centered
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        try:
+            st.image("logo.png", width=80)
+        except:
+            st.markdown("<h1 style='text-align: center;'>🎓</h1>", unsafe_allow_html=True)
+    
     st.markdown('<div class="admin-header"><h1>🔐 Admin Panel</h1><p>Manage users and view all predictions</p></div>', unsafe_allow_html=True)
+    
     tab1, tab2, tab3 = st.tabs(["📊 Dashboard Overview", "👥 Manage Users", "📋 All Predictions"])
+    
     with tab1:
         pred_df = get_all_predictions()
         users_df = get_all_users()
         if not pred_df.empty:
-            c1,c2,c3,c4 = st.columns(4)
+            c1, c2, c3, c4 = st.columns(4)
             with c1: st.metric("Total Predictions", len(pred_df))
             with c2: st.metric("Total Users", len(users_df))
             with c3: st.metric("Average Score", f"{pred_df['predicted_score'].mean():.1f}")
             with c4: st.metric("High Scorers (90+)", len(pred_df[pred_df['predicted_score']>=90]))
         else:
             st.info("No predictions yet")
+    
     with tab2:
         st.subheader("👥 Registered Users")
         users_df = get_all_users()
@@ -143,7 +158,7 @@ def admin_panel():
             if search:
                 users_df = users_df[users_df['username'].str.contains(search, case=False) | users_df['full_name'].str.contains(search, case=False)]
             for _, user in users_df.iterrows():
-                col1,col2,col3,col4,col5 = st.columns([2,2,2,2,1])
+                col1, col2, col3, col4, col5 = st.columns([2, 2, 2, 2, 1])
                 col1.write(f"**{user['full_name']}**")
                 col2.write(f"@{user['username']}")
                 col3.write(user['school_name'])
@@ -157,6 +172,7 @@ def admin_panel():
                 st.divider()
         else:
             st.info("No users found")
+    
     with tab3:
         st.subheader("📋 All Predictions")
         pred_df = get_all_predictions()
@@ -169,6 +185,7 @@ def admin_panel():
             st.download_button("📥 Export All Data to CSV", data=csv, file_name=f"predictions_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", mime="text/csv", use_container_width=True)
         else:
             st.info("No predictions yet")
+    
     if st.button("🚪 Logout from Admin Panel", use_container_width=True):
         st.session_state.logged_in = False
         st.session_state.user = None
