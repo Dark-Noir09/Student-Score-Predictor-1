@@ -18,7 +18,7 @@ st.set_page_config(page_title="Student Score Predictor", page_icon="🎓", layou
 def toggle_dark_mode():
     st.session_state.dark_mode = not st.session_state.dark_mode
 
-# CSS for both themes (white block removed)
+# CSS for themes (no stray divs)
 if st.session_state.dark_mode:
     css = """
         <style>
@@ -61,6 +61,7 @@ def load_model():
         st.error("Model files missing. Please ensure student_model.pkl and model_columns.pkl are present.")
         st.stop()
 
+# Authentication
 if not st.session_state.logged_in:
     if st.session_state.page == 'login':
         login_page()
@@ -76,12 +77,13 @@ model, model_columns = load_model()
 
 # Sidebar
 with st.sidebar:
-    st.markdown('<div style="text-align:center;">', unsafe_allow_html=True)
-    try:
-        st.image("logo.png", width=50)
-    except:
-        st.markdown("<h2>🎓</h2>", unsafe_allow_html=True)
-    st.markdown('</div>')
+    # Center sidebar logo using columns
+    col_logo1, col_logo2, col_logo3 = st.columns([1,2,1])
+    with col_logo2:
+        try:
+            st.image("logo.png", width=80)
+        except:
+            st.markdown("<h2 style='text-align: center;'>🎓</h2>", unsafe_allow_html=True)
     st.markdown("---")
     st.markdown(f"**Name:** {st.session_state.user['full_name']}")
     st.markdown(f"**🏫 School:** {st.session_state.user['school_name']}")
@@ -105,13 +107,13 @@ with st.sidebar:
         st.session_state.user = None
         st.rerun()
 
-# Home page logo centered
-st.markdown('<div style="text-align:center;">', unsafe_allow_html=True)
-try:
-    st.image("logo.png", width=70)
-except:
-    pass
-st.markdown('</div>')
+# Home page logo (centered)
+col_logo1, col_logo2, col_logo3 = st.columns([1,2,1])
+with col_logo2:
+    try:
+        st.image("logo.png", width=120)
+    except:
+        st.markdown("<h1 style='text-align: center; font-size: 4rem;'>🎓</h1>", unsafe_allow_html=True)
 
 st.markdown(f"""
     <div class="main-header">
@@ -120,12 +122,12 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# Input form – 2 columns per row
+# Input form – 2 columns
 st.markdown('<div class="input-section">', unsafe_allow_html=True)
-st.markdown("<h3 style='text-align:center;'>📝 Student Information</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center;'>📝 Student Information</h3>", unsafe_allow_html=True)
 
 with st.form("prediction_form"):
-    # Academic (2 columns)
+    # Academic
     st.markdown("#### 📚 Academic")
     col_a, col_b = st.columns(2)
     with col_a:
@@ -135,7 +137,7 @@ with st.form("prediction_form"):
         attendance = st.slider("📅 Attendance (%)", 0.0, 100.0, 0.0, 5.0)
         sleep = st.slider("😴 Sleep Hours", 0.0, 12.0, 0.0, 0.5)
 
-    # Personal (2 columns)
+    # Personal
     st.markdown("#### 💪 Personal")
     col_c, col_d = st.columns(2)
     with col_c:
@@ -146,7 +148,7 @@ with st.form("prediction_form"):
         parent = st.selectbox("👨‍👩‍👧 Parental Involvement", ["Low","Medium","High"], index=0)
         peer = st.selectbox("👥 Peer Influence", ["Negative","Neutral","Positive"], index=0)
 
-    # Environment (2 columns)
+    # Environment
     st.markdown("#### 🏫 Environment")
     col_e, col_f = st.columns(2)
     with col_e:
@@ -159,7 +161,7 @@ with st.form("prediction_form"):
 
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Prediction and download
+# Prediction handling
 if submitted:
     with st.spinner("Analyzing your data..."):
         input_data = {
@@ -169,7 +171,6 @@ if submitted:
             "Parental_Involvement": parent, "Peer_Influence": peer,
             "Extracurricular_Activities": activities,
         }
-        # Model input preparation (same as before)
         data_for_model = {
             "Hours_Studied": hours, "Attendance": attendance, "Previous_Scores": previous,
             "Tutoring_Sessions": tutoring, "Sleep_Hours": sleep,
@@ -200,7 +201,6 @@ if submitted:
         final_score = max(40, min(100, pred))
         final_score = int(round(final_score))
 
-        # Recommendations
         recs = []
         if 0 < hours < 6: recs.append("📖 Increase study hours to 6-8 per day")
         if hours > 10: recs.append("😴 Reduce study hours to avoid burnout")
@@ -215,7 +215,6 @@ if submitted:
 
         save_prediction(st.session_state.user['id'], st.session_state.user['username'], input_data, final_score, " | ".join(recs[:5]))
 
-        # Display prediction card
         st.markdown(f"""
             <div class="prediction-card">
                 <h2>🎯 Your Predicted Exam Score</h2>
@@ -224,7 +223,6 @@ if submitted:
             </div>
         """, unsafe_allow_html=True)
 
-        # Grade message
         if final_score >= 90: grade, emoji, msg = "A+", "🌟", "Outstanding!"
         elif final_score >= 80: grade, emoji, msg = "A", "🎉", "Very good!"
         elif final_score >= 70: grade, emoji, msg = "B", "📈", "Good!"
@@ -233,7 +231,6 @@ if submitted:
         else: grade, emoji, msg = "F", "🔴", "Critical"
         st.info(f"{emoji} Grade: {grade} – {msg}")
 
-        # Tabs for analysis
         tab1, tab2, tab3, tab4 = st.tabs(["📊 Performance", "💡 Recommendations", "📈 Comparison", "📉 History"])
         with tab1:
             if hours>0 or attendance>0 or sleep>0 or previous>0:
@@ -283,7 +280,7 @@ if submitted:
             else:
                 st.info("Make more predictions to see your progress")
 
-        # Download PDF button – now working
+        # Download PDF button
         st.markdown("---")
         col_btn1, col_btn2, col_btn3 = st.columns([1,2,1])
         with col_btn2:
@@ -304,4 +301,4 @@ if submitted:
                         st.info("Please try again or contact support.")
 
 st.markdown("---")
-st.markdown('<div style="text-align:center;"><p>🎓 Student Score Predictor | Based on Machine Learning Analysis</p><p style="font-size:0.8rem;">Predictions based on historical data patterns.</p></div>', unsafe_allow_html=True)
+st.markdown('<div style="text-align: center;"><p>🎓 Student Score Predictor | Based on Machine Learning Analysis</p><p style="font-size: 0.8rem;">Predictions based on historical data patterns.</p></div>', unsafe_allow_html=True)
