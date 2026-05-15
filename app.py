@@ -13,7 +13,7 @@ from report_generator import generate_pdf_report
 init_database()
 init_session_state()
 
-st.set_page_config(page_title="Student Score Predictor", page_icon="🎓", layout="wide")
+st.set_page_config(page_title="Student Score Predictor", page_icon="logo1.png", layout="wide")
 
 def toggle_dark_mode():
     st.session_state.dark_mode = not st.session_state.dark_mode
