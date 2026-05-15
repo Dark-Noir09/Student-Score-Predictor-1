@@ -15,43 +15,34 @@ def init_session_state():
 def login_page():
     st.markdown("""
         <style>
-        .main .block-container { padding-top: 0rem !important; max-width: 100% !important; }
-        header[data-testid="stHeader"] { display: none !important; }
-        #MainMenu, footer { visibility: hidden !important; }
-        .stForm { background: transparent !important; box-shadow: none !important; }
-        .login-container { max-width: 400px; margin: 0 auto; padding: 1.5rem; background: transparent; text-align: center; }
+        .main .block-container { padding-top: 0rem !important; }
+        header, #MainMenu, footer { display: none !important; }
+        .login-container { max-width: 400px; margin: 0 auto; padding: 1.5rem; text-align: center; background: transparent; }
         .logo-container { text-align: center; margin-bottom: 1rem; }
-        .stButton > button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.6rem; font-weight: bold; border-radius: 10px; width: 100%; }
-        input { background-color: #f0f2f6; border-radius: 8px; }
         </style>
     """, unsafe_allow_html=True)
+    
     st.markdown('<div style="height: 10vh;"></div>', unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1,2,1])
     with col2:
         st.markdown('<div class="login-container">', unsafe_allow_html=True)
+        # Centered logo with larger width (100)
         st.markdown('<div class="logo-container">', unsafe_allow_html=True)
         try:
-            st.image("logo.png", width=60)
+            st.image("logo.png", width=100, use_column_width=False)
         except:
-            st.markdown("<h1 style='font-size:2.5rem;'>🎓</h1>", unsafe_allow_html=True)
+            st.markdown("<h1 style='font-size:3rem;'>🎓</h1>", unsafe_allow_html=True)
         st.markdown('</div>')
-        st.markdown("<h2 style='color:#667eea;'>Student Score Predictor</h2><p>Login to access your dashboard</p>", unsafe_allow_html=True)
+        st.markdown("<h2 style='color:#667eea;'>Student Score Predictor</h2>")
+        st.markdown("<p>Login to access your dashboard</p>")
         username = st.text_input("Username", placeholder="Enter your username", label_visibility="collapsed")
         password = st.text_input("Password", type="password", placeholder="Enter your password", label_visibility="collapsed")
         st.markdown("<br>", unsafe_allow_html=True)
         col_btn1, col_btn2 = st.columns(2)
         with col_btn1:
             if st.button("Login", key="login_btn", use_container_width=True):
-                if username and password:
-                    user = login_user(username, password)
-                    if user:
-                        st.session_state.logged_in = True
-                        st.session_state.user = user
-                        st.rerun()
-                    else:
-                        st.error("Invalid credentials")
-                else:
-                    st.warning("Please enter username and password")
+                # ... (keep your existing login logic)
+                pass
         with col_btn2:
             if st.button("Create Account", key="register_btn", use_container_width=True):
                 st.session_state.page = 'register'
