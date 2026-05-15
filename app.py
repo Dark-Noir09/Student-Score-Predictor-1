@@ -91,11 +91,11 @@ with st.sidebar:
         st.markdown(f"**📚 Grade:** {st.session_state.user['grade']}")
     st.markdown("---")
     col_d1, col_d2 = st.columns([3,1])
-    with col_d1: st.markdown("**Theme Mode**")
-    with col_d2:
-        if st.button("🌙/☀️", key="theme_toggle"):
-            toggle_dark_mode()
-            st.rerun()
+ #   with col_d1: st.markdown("**Theme Mode**")
+  #  with col_d2:
+   #     if st.button("🌙/☀️", key="theme_toggle"):
+    #        toggle_dark_mode()
+     #       st.rerun()
     st.markdown("---")
     user_pred_df = get_user_predictions(st.session_state.user['id'])
     if not user_pred_df.empty:
@@ -301,4 +301,4 @@ if submitted:
                         st.info("Please try again or contact support.")
 
 st.markdown("---")
-st.markdown('<div style="text-align: center;"><p>🎓 Student Score Predictor | Based on Machine Learning Analysis</p><p style="font-size: 0.8rem;">Predictions based on historical data patterns.</p></div>', unsafe_allow_html=True)
+st.markdown('<div style="text-align: center;"><p>🎓 Student Score Predictor by Group 3 | Based on Machine Learning Analysis</p><p style="font-size: 0.8rem;">Predictions based on historical data patterns.</p></div>', unsafe_allow_html=True)
